@@ -296,6 +296,12 @@ def _pick_dataset(payload: Any, *keys: str) -> Any:
 
 
 def _payload_context(payload: Any) -> Dict[str, Any]:
+    """Return the context for collection keys directly below ``data``.
+
+    Current JSON-LD headers place those terms in the property-scoped
+    ``@context.data.@context`` type map. The root-context fallback keeps the
+    generator able to read older copied datasets.
+    """
     if not isinstance(payload, dict):
         return {}
     context = payload.get("@context")
@@ -306,6 +312,11 @@ def _payload_context(payload: Any) -> Dict[str, Any]:
         for item in context:
             if isinstance(item, dict):
                 mappings.update(item)
+    data_term = mappings.get("data")
+    if isinstance(data_term, dict):
+        scoped_context = data_term.get("@context")
+        if isinstance(scoped_context, dict):
+            return scoped_context
     return mappings
 
 
