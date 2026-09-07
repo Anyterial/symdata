@@ -841,11 +841,20 @@ html[data-theme="dark"] .section-anchor-icon {
 }
 
 .flag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 13px;
   border: 1px solid var(--line);
   background: var(--surface);
+}
+
+.flag-pill .info-bubble {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 .flag-pill.true {
@@ -1205,12 +1214,6 @@ html[data-theme="dark"] .mapping-tab-external-icon {
 }
 
 /* Fit a compact ASCII line into the detail boxes with minimal extra height. */
-span[data-symbol-ascii] {
-  display: inline-block;
-  vertical-align: top;
-  max-width: 100%;
-}
-
 .metric[data-symbol-ascii] {
   padding-bottom: 2px;
 }
@@ -1267,16 +1270,6 @@ html[data-theme="dark"] .symbol-ascii {
 
 .symbol-copy-status:empty {
   display: none;
-}
-
-.mapping-tab-item[data-symbol-ascii] {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.mapping-tab-item[data-symbol-ascii] > .mapping-tab-external-link {
-  top: 14px;
 }
 
 @media (hover: none) {

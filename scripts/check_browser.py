@@ -32,6 +32,21 @@ def main():
         # Both equivalent #68 n:c codes must remain selectable.
         expect(page.locator('select[data-secondary-select] option')).to_have_count(530)
 
+        expect(page.locator('.symbol-copy')).to_have_count(6)
+        expect(page.locator('[data-section-body="identity"] .metric .symbol-copy')).to_have_count(6)
+        flag_info = page.locator('.identity-head-flags .info-dot')
+        expect(flag_info).to_have_count(4)
+        for dot, explanation in zip(flag_info.all(), [
+            'Inversion symmetry is present.',
+            'Sohncke: all operations preserve orientation (65 space-group types).',
+            'Identifies the 22 space-group types in 11 handed pairs.',
+            'Identifies the cctbx reference setting used here for STD.',
+        ], strict=True):
+            dot.focus()
+            expect(dot.locator('[role="tooltip"]')).to_be_visible()
+            expect(dot.locator('[role="tooltip"]')).to_have_text(explanation)
+        flag_info.last.blur()
+
         symbol = page.locator('.metric[data-symbol-ascii]:not([data-symbol-aliases])').first
         line = symbol.locator('.symbol-ascii')
         page.mouse.move(0, 0)
@@ -103,7 +118,8 @@ def main():
         extended.locator('.symbol-copy').click()
         expect(extended.locator('[role="status"]')).to_have_text('Copied')
         assert page.evaluate('navigator.clipboard.readText()') == 'C 1 m 1\n  a'
-        assert page.locator('[data-section-body="setting_transforms"] [data-symbol-ascii]').first.get_attribute('data-symbol-ascii')
+        expect(page.locator('.symbol-copy')).to_have_count(6)
+        expect(page.locator('[data-section-body="identity"] .metric .symbol-copy')).to_have_count(6)
 
         page.goto(base + '/pointgroup/')
         expect(page.locator('tr.sg-row')).to_have_count(32)
@@ -115,10 +131,12 @@ def main():
         complex_rows = page.locator('[data-section-body="char_complex"] tbody tr')
         expect(complex_rows).to_have_count(3)
         expect(complex_rows).to_contain_text(['A', 'E (E_a)', 'E (E_b)'])
-        complex_rows.nth(1).locator('.symbol-copy').focus()
-        complex_rows.nth(1).locator('.symbol-copy').press('Enter')
-        expect(complex_rows.nth(1).locator('[role="status"]')).to_have_text('Copied')
-        assert page.evaluate('navigator.clipboard.readText()') == 'E_a'
+        expect(page.locator('.symbol-copy')).to_have_count(1)
+        schoenflies = page.locator('[data-section-body="identity"] .metric[data-symbol-ascii]')
+        schoenflies.locator('.symbol-copy').focus()
+        schoenflies.locator('.symbol-copy').press('Enter')
+        expect(schoenflies.locator('[role="status"]')).to_have_text('Copied')
+        assert page.evaluate('navigator.clipboard.readText()') == schoenflies.get_attribute('data-symbol-ascii')
         expect(complex_rows.nth(1)).to_contain_text('sqrt(3)/2')
         page.locator('[data-section-toggle="char_real"]').click()
         expect(page.locator('.related-link').first).to_have_attribute('href', re.compile('char_real=closed'))

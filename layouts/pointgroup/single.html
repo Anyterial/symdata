@@ -252,7 +252,7 @@
                       {{ end }}
                     {{ end }}
                     <tr>
-                      <td data-symbol-ascii="{{ .label.ascii }}">{{ partial "value.html" $labelText }}</td>
+                      <td>{{ partial "value.html" $labelText }}</td>
                       <td>{{ partial "value.html" .size }}</td>
                       <td>{{ add .representative 1 }}</td>
                       <td>{{ partial "value.html" .op_type }}</td>
@@ -321,7 +321,7 @@
                     {{ $label := .label }}
                     {{ with .label_markup }}{{ $label = default $label (index . "unicode") }}{{ end }}
                     <tr>
-                      <td data-symbol-ascii="{{ .label }}">{{ partial "value.html" $label }}</td>
+                      <td>{{ partial "value.html" $label }}</td>
                       <td>{{ partial "value.html" .dimension }}</td>
                       <td>{{ partial "value.html" .characters }}</td>
                       <td>{{ partial "value.html" .basis_linear }}</td>
@@ -398,7 +398,7 @@
                       {{ end }}
                     {{ end }}
                     <tr>
-                      <td data-symbol-ascii="{{ .label }}">{{ partial "value.html" $label }}</td>
+                      <td>{{ partial "value.html" $label }}</td>
                       <td>{{ partial "value.html" .dimension }}</td>
                       <td>{{ delimit $chars ", " }}</td>
                       <td>{{ partial "value.html" .frobenius_schur_indicator }}</td>
