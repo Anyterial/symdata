@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting to space-group setting</title>
+    <link rel="canonical" href="{{ .Permalink }}">
+    <meta name="robots" content="noindex">
+    <script>
+      const target = new URL({{ .Permalink }}, window.location.href);
+      target.search = window.location.search;
+      target.hash = window.location.hash;
+      window.location.replace(target.href);
+    </script>
+    <noscript><meta http-equiv="refresh" content="0; url={{ .Permalink }}"></noscript>
+  </head>
+  <body><a href="{{ .Permalink }}">Open the space-group setting</a>.</body>
+</html>

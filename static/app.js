@@ -57,6 +57,7 @@ const INDEX_FIELDS = [
   "universal_hm_latex",
   "universal_hm_unicode",
   "n_c",
+  "n_c_aliases",
   "setting_it_nc",
   "it_coordinate_system_code",
   "crystal_system",
@@ -223,7 +224,7 @@ const normalizeRow = (row) => {
   normalized.hm_extended_latex = firstNonEmpty(markupField(row, "hm_extended", "latex"), row.hm_extended_latex, row.hm_extended);
   normalized.hm_extended_unicode = firstNonEmpty(markupField(row, "hm_extended", "unicode"), row.hm_extended_unicode, row.hm_extended);
 
-  normalized.hm_universal = firstNonEmpty(row.hm_universal, row.universal_hm);
+  normalized.hm_universal = firstNonEmpty(row.hm_universal, row.hm_cctbx_universal, row.universal_hm);
   normalized.hm_universal_aliases = firstNonEmpty(row.hm_universal_aliases);
   normalized.hm_universal_aliases_latex = firstNonEmpty(row.hm_universal_aliases_latex, row.hm_universal_aliases);
   normalized.hm_universal_aliases_html = firstNonEmpty(row.hm_universal_aliases_html);
@@ -248,6 +249,7 @@ const normalizeRow = (row) => {
   normalized.it_number = firstNonEmpty(row.it_number, row.ita_number);
   normalized.n_c = firstNonEmpty(row.n_c, row.setting_it_nc);
   normalized.setting_it_nc = normalized.n_c;
+  normalized.n_c_aliases = firstNonEmpty(row.n_c_aliases, row.setting_it_nc_aliases);
 
   return normalized;
 };
@@ -712,7 +714,7 @@ const TABLE_CONFIGS = {
       { key: "hall_key", label: "Hall Symbol", docUrl: FIELD_DOC_URLS.hall, render: (row) => renderHallWithLatex(row) },
       { key: "crystal_system", label: "Crystal System", muted: true, render: (row) => escapeHtml(formatValue(row.crystal_system)) },
       { key: "point_group", label: "Point Group", muted: true, render: (row) => escapeHtml(formatValue(row.point_group)) },
-      { key: "n_c", label: "n:c", muted: true, render: (row) => escapeHtml(formatValue(row.n_c)) }
+      { key: "n_c", label: "n:c", muted: true, render: (row) => escapeHtml([row.n_c, ...getArrayValues(row.n_c_aliases)].filter(Boolean).join(", ")) }
     ],
     rowUrl: (baseUrl, row) => buildHallUrl(baseUrl, row.hall_key)
   },
@@ -824,6 +826,7 @@ const filterSpacegroupRows = (rows, query) => {
       item.ita_number,
       Array.isArray(item.n_c) ? item.n_c.join(" ") : item.n_c,
       item.setting_it_nc,
+      getArrayValues(item.n_c_aliases).join(" "),
       item.it_coordinate_system_code,
       item.crystal_system,
       item.point_group,
@@ -1046,8 +1049,10 @@ const updateStaticHallLinks = () => {
       return;
     }
 
-    const explicitMode = normalizeSettingsMode(parsed.searchParams.get(SETTINGS_QUERY_KEY));
-    const mode = explicitMode || settingsMode;
+    if (!anchor.hasAttribute("data-original-settings-mode")) {
+      anchor.setAttribute("data-original-settings-mode", normalizeSettingsMode(parsed.searchParams.get(SETTINGS_QUERY_KEY)) || "");
+    }
+    const mode = normalizeSettingsMode(anchor.getAttribute("data-original-settings-mode")) || settingsMode;
     anchor.setAttribute("href", withNavigationQuery(parsed.pathname, mode));
   });
 };
@@ -1251,8 +1256,7 @@ const setupEvents = () => {
       sectionState[key] = !sectionState[key];
       syncModeUrlAndStorage();
       updateSectionToggles();
-      updateStaticHallLinks();
-      updateBackButtonHref();
+      refreshUiState();
     });
   });
 
@@ -1514,13 +1518,16 @@ const buildLists = (rows) => {
       }
       itaGroups.get(key).push(row);
     }
-    if (row.n_c !== null && row.n_c !== undefined && String(row.n_c).trim() !== "") {
-      const key = Array.isArray(row.n_c) ? row.n_c.join(", ") : String(row.n_c);
+    [row.n_c, ...getArrayValues(row.n_c_aliases)].forEach((nc) => {
+      if (nc === null || nc === undefined || String(nc).trim() === "") {
+        return;
+      }
+      const key = Array.isArray(nc) ? nc.join(", ") : String(nc);
       if (!ncGroups.has(key)) {
         ncGroups.set(key, []);
       }
       ncGroups.get(key).push(row);
-    }
+    });
   });
 
   const hmToHall = {};
@@ -1730,6 +1737,7 @@ const loadPointgroupRows = async (baseUrl) => {
 };
 
 const initIndex = async () => {
+  const requestedMode = getModeFromUrl();
   syncModeUrlAndStorage();
   updateSettingsButtons();
   updateThemeButtons();
@@ -1739,6 +1747,14 @@ const initIndex = async () => {
   allRows = await loadSpacegroupRows(baseUrl);
   pointgroupRows = await loadPointgroupRows(baseUrl);
 
+  const current = allRows.find((row) => row.hall_key === getCurrentDetailHallKey());
+  if (current && !current.is_reference_setting && settingsMode === SETTINGS_ITA) {
+    if (requestedMode === SETTINGS_ITA && maybeRedirectToItaReferenceSetting()) {
+      return;
+    }
+    settingsMode = SETTINGS_ALL;
+    syncModeUrlAndStorage();
+  }
   setupEvents();
   refreshUiState();
 };
