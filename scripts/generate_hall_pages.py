@@ -412,8 +412,8 @@ def _normalize_entry(hall_key: str, raw_entry: Any) -> Dict[str, Any]:
     hm_universal_aliases_html = _first_non_empty(entry.get("hm_universal_aliases_html"), _aliases_markup(entry, "hm_extended", "html"), entry.get("hm_extended_aliases_html"))
     hm_universal_aliases_unicode = _first_non_empty(entry.get("hm_universal_aliases_unicode"), _aliases_markup(entry, "hm_extended", "unicode"), hm_universal_aliases)
     hm_universal_latex = _first_non_empty(entry.get("hm_universal_latex"))
-    hm_universal_html = _first_non_empty(entry.get("hm_universal_html"), hm_extended_html, hm_universal)
-    hm_universal_unicode = _first_non_empty(entry.get("hm_universal_unicode"), hm_extended_unicode, hm_universal)
+    hm_universal_html = _first_non_empty(entry.get("hm_universal_html"), hm_universal)
+    hm_universal_unicode = _first_non_empty(entry.get("hm_universal_unicode"), hm_universal)
 
     hm_entry = _first_non_empty(entry.get("hm_entry"), hm_full)
     hm_entry_latex = _first_non_empty(_markup(entry, "hm_entry", "latex"), hm_full_latex)
@@ -1035,9 +1035,9 @@ def build_related_settings(
                     "hm_short_aliases_unicode": _first_non_empty(item.get("hm_short_aliases_unicode"), item.get("hm_short_aliases")),
                     "hm_universal": _first_non_empty(item.get("hm_universal"), item.get("hm_extended"), item.get("hm_full")),
                     "hm_universal_latex": item.get("hm_universal_latex"),
-                    "hm_universal_html": _first_non_empty(item.get("hm_universal_html"), item.get("hm_extended_html"), item.get("hm_universal")),
+                    "hm_universal_html": _first_non_empty(item.get("hm_universal_html"), item.get("hm_universal")),
                     "hm_universal_unicode": _first_non_empty(
-                        item.get("hm_universal_unicode"), item.get("hm_extended_unicode"), item.get("hm_universal")
+                        item.get("hm_universal_unicode"), item.get("hm_universal")
                     ),
                     "is_reference_setting": bool(item.get("is_reference_setting")),
                 }
@@ -1084,9 +1084,9 @@ def _mapping_with_target_metadata(
             target.get("hm_universal_aliases_unicode"), target.get("hm_universal_aliases")
         ),
         "hm_universal_latex": target.get("hm_universal_latex"),
-        "hm_universal_html": _first_non_empty(target.get("hm_universal_html"), target.get("hm_extended_html"), target.get("hm_universal")),
+        "hm_universal_html": _first_non_empty(target.get("hm_universal_html"), target.get("hm_universal")),
         "hm_universal_unicode": _first_non_empty(
-            target.get("hm_universal_unicode"), target.get("hm_extended_unicode"), target.get("hm_universal")
+            target.get("hm_universal_unicode"), target.get("hm_universal")
         ),
         "qualifier": target.get("qualifier"),
         "point_group": target.get("point_group"),
@@ -1097,8 +1097,13 @@ def _mapping_with_target_metadata(
         "ita_number": target.get("ita_number"),
         "is_reference_setting": bool(target.get("is_reference_setting")),
         "index": mapping.get("index"),
+        "subgroup_type": mapping.get("subgroup_type"),
+        "k_subtype": mapping.get("k_subtype"),
         "transformation_matrix": mapping.get("transformation_matrix"),
         "origin_shift": mapping.get("origin_shift"),
+        "transformation_matrix_text": "; ".join(_format_vector_text(row) for row in mapping.get("transformation_matrix") or []),
+        "origin_shift_text": _format_vector_text(mapping.get("origin_shift") or []),
+        "setting_it_nc": target.get("n_c"),
         "centering_translations_xyz": _first_non_empty(
             mapping.get("h_centering_translations_xyz"),
             target.get("centering_translations_xyz"),
@@ -1312,6 +1317,14 @@ def _build_wyckoff_orbit_mod_map(entry: Dict[str, Any] | None) -> Dict[str, Any]
     return result
 
 
+def _build_wyckoff_first_orbit_map(entry: dict[str, Any] | None) -> dict[str, str | None]:
+    """Return the parent-coordinate branches used as split-map inputs."""
+    wyckoff = (entry or {}).get("wyckoff", [])
+    if isinstance(wyckoff, dict):
+        return {letter: value.get("first_orbit") for letter, value in wyckoff.items()}
+    return {value["letter"]: value.get("first_orbit") for value in wyckoff}
+
+
 def _format_wyckoff_label(label: Any, multiplicity_by_label: Dict[str, str]) -> str:
     label_text = str(label).strip()
     if not label_text:
@@ -1349,6 +1362,7 @@ def _build_wyckoff_rows(
     h_multiplicity_by_label: Dict[str, str] | None = None,
     h_orbit_mod_by_label: Dict[str, Any] | None = None,
     h_centering_translations_xyz: Any = None,
+    g_first_orbit_by_label: dict | None = None,
 ) -> List[Dict[str, Any]]:
     g_mult = g_multiplicity_by_label or {}
     h_mult = h_multiplicity_by_label or {}
@@ -1376,6 +1390,7 @@ def _build_wyckoff_rows(
                 rows.append(
                     {
                         "g_wp": g_wp,
+                        "g_first_orbit_xyz": (g_first_orbit_by_label or {}).get(_wyckoff_lookup_label(g_wp)),
                         "g_wp_display": _format_wyckoff_label(g_wp, g_mult),
                         "h_wp": h_wp,
                         "h_wp_display": _format_wyckoff_label(h_wp, h_mult),
@@ -1412,6 +1427,7 @@ def _build_wyckoff_rows(
             rows.append(
                 {
                     "g_wp": g_wp,
+                    "g_first_orbit_xyz": (g_first_orbit_by_label or {}).get(_wyckoff_lookup_label(g_wp)),
                     "g_wp_display": _format_wyckoff_label(g_wp, g_mult),
                 "h_wp": h_wp,
                 "h_wp_display": _format_wyckoff_label(h_wp, h_mult),
@@ -1512,6 +1528,7 @@ def _build_cell_commensurator_items(raw_items: Any, source_entry: Dict[str, Any]
             source_mult,
             source_orbit_mod,
             source_centering_translations_xyz,
+            _build_wyckoff_first_orbit_map(source_entry),
         )
         items.append(
             {
@@ -1565,6 +1582,8 @@ def build_group_mappings(
                         continue
                 normalized = {
                     "index": index,
+                    "subgroup_type": mapping.get("subgroup_type"),
+                    "k_subtype": mapping.get("k_subtype"),
                     "transformation_matrix": mapping.get("transformation_matrix"),
                     "origin_shift": mapping.get("origin_shift"),
                     "wyckoff_rows": _build_wyckoff_rows(
@@ -1573,6 +1592,7 @@ def build_group_mappings(
                         wyckoff_mult_by_hall.get(h_hall, {}),
                         wyckoff_orbit_mod_by_hall.get(h_hall, {}),
                         data.get(h_hall, {}).get("centering_translations_xyz"),
+                        _build_wyckoff_first_orbit_map(data.get(g_hall)),
                     ),
                     "h_centering_translations_xyz": data.get(h_hall, {}).get("centering_translations_xyz"),
                 }
@@ -1580,12 +1600,16 @@ def build_group_mappings(
                 incoming.setdefault(h_hall, []).append((g_hall, normalized))
 
     def dedupe_edges(edges: List[tuple[str, Dict[str, Any]]]) -> List[tuple[str, Dict[str, Any]]]:
-        by_other: Dict[str, Dict[str, Any]] = {}
+        # HM aliases can repeat an edge. Distinct indices, embeddings, and
+        # splitting branches must all survive the Hall-key projection.
+        seen = set()
+        result = []
         for other_hall, mapping in edges:
-            existing = by_other.get(other_hall)
-            if existing is None or mapping["index"] < existing["index"]:
-                by_other[other_hall] = mapping
-        return [(other_hall, by_other[other_hall]) for other_hall in sorted(by_other.keys())]
+            key = (other_hall, json.dumps(mapping, sort_keys=True))
+            if key not in seen:
+                seen.add(key)
+                result.append((other_hall, mapping))
+        return result
 
     def same_ita(hall_key: str, other_hall_key: str) -> bool:
         hall_ita = data.get(hall_key, {}).get("ita_number")

@@ -90,7 +90,7 @@
                 {{ partial "field_label.html" (dict "text" "Laue Class" "url" (index $docMap "laue_class")) }}
                 {{
                   partial "info_dot.html" (dict
-                    "general" "The Laue class groups point groups that become equivalent when inversion symmetry is included, capturing diffraction-equivalent behavior."
+                    "general" "The Laue class groups point groups that become equivalent when inversion symmetry is included, giving diffraction symmetry when Friedel's law applies. Anomalous scattering can break that intensity equivalence."
                   )
                 }}
               </label>
@@ -143,7 +143,7 @@
             "toggle_key" "symops"
             "doc_url" (index $docMap "symops")
             "info_general" "Symmetry operations are coordinate transformations that leave the object unchanged."
-            "info_context" "Rows list operation metadata in page order using the same short labels shown in the table."
+            "info_context" "Operations use fractional coordinates in the reference crystallographic basis, which need not be orthonormal. The polynomial bases in the real character table use Cartesian coordinates instead."
           )
         }}
         <div data-section-body="symops">
@@ -217,7 +217,7 @@
                   <tr>
                     <th>
                       Label
-                      {{ partial "info_dot.html" (dict "general" "Class labels name each conjugacy class for quick reference." "context" "If label data is structured, we prefer ascii then fallback to unicode when rendering.") }}
+                      {{ partial "info_dot.html" (dict "general" "Class labels name each conjugacy class for quick reference." "context" "If label data is structured, we prefer unicode then fallback to ascii when rendering.") }}
                     </th>
                     <th>
                       Size
@@ -225,7 +225,7 @@
                     </th>
                     <th>
                       Representative
-                      {{ partial "info_dot.html" (dict "general" "A representative is one selected element standing in for the full class." "context" "The table shows one representative symbol per class.") }}
+                      {{ partial "info_dot.html" (dict "general" "A representative is one selected operation standing in for the full class." "context" "The number refers to the one-based row number in the symmetry-operations table.") }}
                     </th>
                     <th>
                       Operation Type
@@ -237,7 +237,7 @@
                     </th>
                     <th>
                       Members
-                      {{ partial "info_dot.html" (dict "general" "Members are the explicit operations contained in a conjugacy class." "context" "Members are displayed as the class element list in this table.") }}
+                      {{ partial "info_dot.html" (dict "general" "Members are the explicit operations contained in a conjugacy class." "context" "Members are one-based row numbers in the symmetry-operations table; the source dataset uses zero-based indices.") }}
                     </th>
                   </tr>
                 </thead>
@@ -254,10 +254,11 @@
                     <tr>
                       <td>{{ partial "value.html" $labelText }}</td>
                       <td>{{ partial "value.html" .size }}</td>
-                      <td>{{ partial "value.html" .representative }}</td>
+                      <td>{{ add .representative 1 }}</td>
                       <td>{{ partial "value.html" .op_type }}</td>
                       <td>{{ partial "value.html" (delimit .op_axis ", ") }}</td>
-                      <td>{{ partial "value.html" .members }}</td>
+                      {{ $members := slice }}{{ range .members }}{{ $members = $members | append (add . 1) }}{{ end }}
+                      <td>{{ partial "value.html" $members }}</td>
                     </tr>
                   {{ end }}
                 </tbody>
@@ -278,7 +279,7 @@
             "toggle_key" "char_real"
             "doc_url" (index $docMap "character_table_real")
             "info_general" "A character table summarizes traces of representation matrices over each conjugacy class and is central in symmetry-based analysis."
-            "info_context" "This real table lists irreducible representations with common basis hints."
+            "info_context" "Rows are irreducible over the real numbers; a conjugate pair of non-real complex irreps combines into a real irrep of twice the complex dimension. Such a real row has character norm squared two, not one."
           )
         }}
         <div data-section-body="char_real">
@@ -298,19 +299,20 @@
                     </th>
                     <th>
                       Characters
-                      {{ partial "info_dot.html" (dict "general" "Characters are traces of representation matrices and remain constant on conjugacy classes." "context" "Character arrays are rendered with default list formatting in this column.") }}
+                      <span class="table-header-subline">{{ range $idx, $class := $.Params.conjugacy_classes }}{{ if $idx }}, {{ end }}{{ default $class.label.ascii $class.label.unicode }}{{ end }}</span>
+                      {{ partial "info_dot.html" (dict "general" "Characters are traces of representation matrices and remain constant on conjugacy classes." "context" "Entries follow the conjugacy-class order printed in this column header, matching the table above.") }}
                     </th>
                     <th>
                       Basis (Linear)
-                      {{ partial "info_dot.html" (dict "general" "Linear basis labels indicate vector-like functions transforming under the irrep." "context" "This column lists common linear basis examples.") }}
+                      {{ partial "info_dot.html" (dict "general" "Linear basis labels indicate vector-like functions transforming under the irrep." "context" "These are Cartesian polar-vector functions. x is along reference a and z along c; for trigonal/hexagonal groups y is perpendicular to x in the basal plane, not the fractional b coordinate.") }}
                     </th>
                     <th>
                       Basis (Rotation)
-                      {{ partial "info_dot.html" (dict "general" "Rotation basis labels indicate rotational components associated with the irrep." "context" "Displayed values are the stored basis_rotation annotations.") }}
+                      {{ partial "info_dot.html" (dict "general" "Rotation basis labels indicate rotational components associated with the irrep." "context" "Rx, Ry, Rz are Cartesian axial-vector components, transforming as det(Q)*Q for a Cartesian point operation Q.") }}
                     </th>
                     <th>
                       Basis (Quadratic)
-                      {{ partial "info_dot.html" (dict "general" "Quadratic basis labels indicate second-order function components transforming under the irrep." "context" "Shown directly from the basis_quadratic metadata field.") }}
+                      {{ partial "info_dot.html" (dict "general" "Quadratic basis labels indicate second-order function components transforming under the irrep." "context" "These Cartesian quadratic polynomials span the isotypic component, which can contain multiple copies of the irrep; the list is not necessarily one irreducible basis. An empty list or a dash means this polynomial space contains no such component.") }}
                     </th>
                   </tr>
                 </thead>
@@ -365,11 +367,12 @@
                     </th>
                     <th>
                       Characters
-                      {{ partial "info_dot.html" (dict "general" "Characters are conjugacy-class invariants computed as traces of representation matrices." "context" "Character values are shown in compact table form for each irrep.") }}
+                      <span class="table-header-subline">{{ range $idx, $class := $.Params.conjugacy_classes }}{{ if $idx }}, {{ end }}{{ default $class.label.ascii $class.label.unicode }}{{ end }}</span>
+                      {{ partial "info_dot.html" (dict "general" "Characters are conjugacy-class invariants computed as traces of representation matrices." "context" "Exact entries follow the conjugacy-class order printed in this column header; i is the imaginary unit and sqrt denotes the positive square root.") }}
                     </th>
                     <th>
                       Frobenius-Schur Indicator
-                      {{ partial "info_dot.html" (dict "general" "The Frobenius-Schur indicator helps distinguish real, complex, and quaternionic representation types." "context" "This column shows the stored indicator value for each complex irrep row.") }}
+                      {{ partial "info_dot.html" (dict "general" "The Frobenius-Schur indicator helps distinguish real, complex, and quaternionic representation types." "context" "+1 means a real realization, 0 a non-real irrep paired with its conjugate, and -1 quaternionic type.") }}
                     </th>
                   </tr>
                 </thead>
@@ -377,6 +380,7 @@
                   {{ range $rows }}
                     {{ $label := .label }}
                     {{ with .label_markup }}{{ $label = default $label (index . "unicode") }}{{ end }}
+                    {{ if ne $label .label }}{{ $label = printf "%s (%s)" $label .label }}{{ end }}
                     {{ $chars := slice }}
                     {{ range .characters }}
                       {{ if reflect.IsMap . }}
@@ -385,9 +389,9 @@
                         {{ if eq $im "0" }}
                           {{ $chars = $chars | append $re }}
                         {{ else if hasPrefix $im "-" }}
-                          {{ $chars = $chars | append (printf "%s%si" $re $im) }}
+                          {{ $chars = $chars | append (printf "%s-(%s)i" $re (strings.TrimPrefix "-" $im)) }}
                         {{ else }}
-                          {{ $chars = $chars | append (printf "%s+%si" $re $im) }}
+                          {{ $chars = $chars | append (printf "%s+(%s)i" $re $im) }}
                         {{ end }}
                       {{ else }}
                         {{ $chars = $chars | append (printf "%v" .) }}

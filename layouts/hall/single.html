@@ -121,6 +121,7 @@
           {{ $docLaueClass := index $docMap "laue_class" }}
           {{ $docSchoenflies := index $docMap "schoenflies" }}
           {{ $docCrystalSystem := index $docMap "crystal_system" }}
+          <p class="note">The flag “is chiral” means Sohncke: all operations preserve orientation (65 space-group types). “Is enantiomorphic” identifies the 22 types in 11 handed pairs. “Is centric” means inversion is present; “is reference setting” identifies the cctbx reference setting used here for STD.</p>
           <div class="identity-grid">
             <div class="metric">
               <label>
@@ -377,7 +378,7 @@
                 {{ partial "field_label.html" (dict "text" "Laue Class" "url" $docLaueClass) }}
                 {{
                   partial "info_dot.html" (dict
-                    "general" "Laue classes group crystals by diffraction symmetry and are closely tied to inversion-related point-group behavior."
+                    "general" "The Laue class is the point group extended by inversion. It describes diffraction symmetry when Friedel's law applies; anomalous scattering can break that intensity equivalence."
                   )
                 }}
               </label>
@@ -483,7 +484,7 @@
               {{ partial "field_label.html" (dict "text" "Bravais type" "url" (index $docMap "bravais_type")) }}
               {{
                 partial "info_dot.html" (dict
-                  "general" "The Bravais type of the translational lattice: a lower-case crystal-system letter followed by an upper-case centring symbol."
+                  "general" "The setting-independent Bravais lattice type: a lower-case crystal-family letter followed by an upper-case lattice symbol (a, m, o, t, h, or c; trigonal and hexagonal share h)."
                   "context" "Side-centred A, B, or C settings are normalized to the setting-independent S symbol for monoclinic and orthorhombic lattices."
                 )
               }}:
@@ -493,7 +494,7 @@
               {{ partial "field_label.html" (dict "text" "Centring type" "url" (index $docMap "centring_type")) }}
               {{
                 partial "info_dot.html" (dict
-                  "general" "The setting-dependent lattice centring symbol identifying primitive, face-centred, body-centred, rhombohedral, or hexagonal centring."
+                  "general" "The setting-dependent centring symbol: P, A, B, C, I, F, or R for these data. Rhombohedral groups use R with hexagonal axes and P with primitive rhombohedral axes; their Bravais type remains hR."
                 )
               }}:
               {{ partial "value.html" .Params.centring_type }}
@@ -528,7 +529,7 @@
               {{ partial "field_label.html" (dict "text" "Asymmetric unit" "url" (index $docMap "asu_str")) }}
               {{
                 partial "info_dot.html" (dict
-                  "general" "The asymmetric unit is the smallest region that generates the full crystal under all symmetry operations."
+                  "general" "An asymmetric unit is a fundamental region containing one representative of each point orbit under the space group, with rules assigning boundary points to exactly one representative."
                   "context" "This is the plain-string rendering; the underlying dataset also stores the structured plane-and-rule representation under the asu field. Bracketed conditions refine boundary ownership."
                 )
               }}:
@@ -547,7 +548,7 @@
               {{ partial "field_label.html" (dict "text" "Wyckoff sets" "url" (index $docMap "wyckoff_sets")) }}
               {{
                 partial "info_dot.html" (dict
-                  "general" "Wyckoff sets group Wyckoff positions that are equivalent under the normalizer of the space group."
+                  "general" "Wyckoff sets group positions interchanged by the generated finite cctbx Euclidean-normalizer action, preserving multiplicity and site-symmetry type. They do not claim equivalence classes under the full affine normalizer or all continuous origin shifts."
                 )
               }}:
               {{ $wyckoffSets := .Params.wyckoff_sets }}
@@ -561,7 +562,7 @@
               {{ partial "field_label.html" (dict "text" "Centering translations count" "url" (index $docMap "n_centering_translations")) }}
               {{
                 partial "info_dot.html" (dict
-                  "general" "Number of centering translations in the conventional cell of this setting."
+                  "general" "Number of distinct lattice translations modulo integer cell translations in this setting, including the zero vector. Rhombohedral primitive axes therefore have count one."
                   "context" "It equals the length of the centering-translation list used in the Wyckoff and normalizer tables."
                 )
               }}:
@@ -582,7 +583,7 @@
               {{
                 partial "info_dot.html" (dict
                   "general" "Number of symmetry operations in the finite operation list for this setting."
-                  "context" "It equals the length of the symmetry-operations table below."
+                  "context" "It counts operations modulo integer cell translations, including centering and inversion. It equals the reduced table length multiplied by the centering-translation count."
                 )
               }}:
               {{ partial "value.html" (default .Params.symop_count .Params.order_z) }}
@@ -612,8 +613,8 @@
                 {{ partial "field_label.html" (dict "text" "Structure seminvariants" "url" (index $docMap "structure_seminvariants")) }}
                 {{
                   partial "info_dot.html" (dict
-                    "general" "Structure-seminvariant vectors and moduli describe origin shifts that leave the phase relations of the structure invariant."
-                    "context" "A modulus of 0 marks a continuously allowed shift direction."
+                    "general" "Each vector v with positive modulus m generates a discrete allowed origin shift v/m; modulus zero specifies a continuous direction. A seminvariant reciprocal index h satisfies h·v = 0 modulo m, or h·v = 0 when m is zero."
+                    "context" "These conditions describe origin-independent phases under the allowed shifts; they are not systematic-absence conditions for reflection intensities."
                   )
                 }}
               </p>
@@ -678,7 +679,7 @@
                     </th>
                     <th>
                       screw/glide
-                      {{ partial "info_dot.html" (dict "general" "Screw and glide components add fractional translations to rotational or reflection operations." "context" "This column reports the parsed screw or glide descriptor for each operation when available.") }}
+                      {{ partial "info_dot.html" (dict "general" "Screw and glide components add fractional translations to rotational or reflection operations." "context" "The listed fractional vector v is the intrinsic translation: if the linear part P has order n, repeating the affine operation n times gives translation n*v.") }}
                     </th>
                   </tr>
                 </thead>
@@ -708,7 +709,7 @@
             "id" "wyckoff-positions"
             "toggle_key" "wyckoff"
             "doc_url" (index $docMap "wyckoff")
-            "info_general" "Wyckoff positions partition symmetry-equivalent sites by multiplicity and site symmetry in a given space group."
+            "info_general" "A Wyckoff position is a family of orbits whose site-symmetry subgroups are conjugate within the space group. Different letters can share the same multiplicity and site-symmetry symbol."
             "info_context" "The table lists each orbit modulo centering translations. Apply every centering translation to every listed reduced coordinate to recover the full orbit."
           )
         }}
@@ -739,7 +740,7 @@
                       <th>
                         Orbit mod centerings (xyz)
                         <span class="table-header-subline">{{ partial "orbit.html" $centeringTranslations }}</span>
-                        {{ partial "info_dot.html" (dict "general" "This column lists the non-centering part of the Wyckoff orbit." "context" "The full orbit is the Cartesian product of this reduced list with the centering translations shown above, with coordinates understood modulo lattice translations.") }}
+                        {{ partial "info_dot.html" (dict "general" "This column lists the non-centering part of the Wyckoff orbit." "context" "Obtain the full orbit by adding each centering vector to each reduced coordinate, modulo integer cell translations. Multiplicities apply to generic allowed parameter values; special values can belong to a different Wyckoff position.") }}
                       </th>
                     </tr>
                   </thead>
@@ -776,7 +777,7 @@
             "toggle_key" "max_subgroups"
             "doc_url" (index $docMap "baernighausen")
             "info_general" "A maximal subgroup is a proper subgroup with no intermediate subgroup between it and the parent group."
-            "info_context" "Buttons use the format HM #ITA (index): HM is the target Hermann-Mauguin symbol, #ITA is its ITA number, and index is the subgroup index."
+            "info_context" "Buttons identify the target HM symbol, ITA number, subgroup index, and setting. Distinct generated embeddings are retained; their matrices and splitting maps are shown below. Same-ITA relations are presented separately under Isomorphic Subgroups and Setting Transformations."
           )
         }}
         <div data-section-body="max_subgroups">
@@ -786,7 +787,7 @@
               <div class="mapping-tabs" role="tablist" aria-label="Maximal subgroup mappings">
                 {{ range $idx, $item := $maxSubs }}
                   {{ $hmLabelLatex := $item.hm_short_latex }}
-                  {{ $hmLabelHtml := default $item.hm_short_html $item.hm_full_html }}
+                  {{ $hmLabelHtml := $item.hm_short_html }}
                   {{ $hmLabel := default $item.hall_key (default $item.hm_short $item.hm_short_unicode) }}
                   {{ $tabId := printf "max-tab-%d" $idx }}
                   <div class="mapping-tab-item" data-mapping-tab-item>
@@ -801,7 +802,7 @@
                       aria-controls="{{ printf "max-panel-%d" $idx }}"
                       aria-selected="{{ if eq $idx 0 }}true{{ else }}false{{ end }}"
                     >
-                      <span>{{ if $hmLabelLatex }}<span class="math-content">\({{ $hmLabelLatex }}\)</span>{{ else if $hmLabelHtml }}{{ $hmLabelHtml | safeHTML }}{{ else }}{{ $hmLabel }}{{ end }} #{{ partial "value.html" $item.ita_number }} ({{ partial "value.html" $item.index }})</span>
+                      <span>{{ if $hmLabelLatex }}<span class="math-content">\({{ $hmLabelLatex }}\)</span>{{ else if $hmLabelHtml }}{{ $hmLabelHtml | safeHTML }}{{ else }}{{ $hmLabel }}{{ end }} #{{ partial "value.html" $item.ita_number }} ({{ partial "value.html" $item.index }}); {{ $item.setting_it_nc }} · No. {{ add $idx 1 }}</span>
                     </button>
                     {{ with $item.hall_key }}
                       <a
@@ -839,12 +840,17 @@
                   data-is-reference-setting="{{ if $item.is_reference_setting }}true{{ else }}false{{ end }}"
                   {{ if ne $idx 0 }}hidden{{ end }}
                 >
+                  <p class="note">
+                    P={{ partial "value.html" $item.transformation_matrix_text }}, p={{ partial "value.html" $item.origin_shift_text }};
+                    type={{ partial "value.html" $item.subgroup_type }}{{ with $item.k_subtype }} ({{ . }}){{ end }}.
+                    {{ partial "info_dot.html" (dict "general" "The embedding is x_G = P*x_H + p; P is shown as rows, with subgroup basis vectors as its columns in the parent basis. Index [G:H] = |det(P)| times n_symops(G)/n_symops(H)." "context" "A t subgroup preserves the full translation lattice; a k subgroup preserves the point-group order. The splitting maps below run from parent coordinates to child coordinates and include the choices of child-orbit representatives.") }}
+                  </p>
                   <table class="data-table">
                     <thead>
                       <tr>
                         <th>
                           G WP
-                          {{ partial "info_dot.html" (dict "general" "A Wyckoff position in G refers to a site class in the current parent group." "context" "G WP denotes the parent-group side of each splitting relation.") }}
+                          {{ partial "info_dot.html" (dict "general" "A Wyckoff position in G is a family of orbits whose site-symmetry subgroups are conjugate within G; G is the current parent group." "context" "G WP denotes the parent-group side of each splitting relation.") }}
                         </th>
                         <th>
                           H WP
@@ -853,11 +859,11 @@
                         <th>
                           H Orbit mod centerings
                           <span class="table-header-subline">{{ partial "orbit.html" $targetCentering }}</span>
-                          {{ partial "info_dot.html" (dict "general" "An H orbit is the representative coordinate orbit in the subgroup setting, reduced modulo centering translations when available." "context" "The full target orbit is obtained by combining these reduced coordinates with the centering translations shown in the header.") }}
+                          {{ partial "info_dot.html" (dict "general" "An H orbit is the representative coordinate orbit in the subgroup setting, reduced modulo centering translations when available." "context" "Add each header centering translation to each reduced coordinate, modulo integer cell translations. The orbit parameters are local to H; the branch and affine map specify its relation to the parent.") }}
                         </th>
                         <th>
                           Algebraic Map
-                          {{ partial "info_dot.html" (dict "general" "Algebraic maps write coordinate substitutions that convert between related group settings." "context" "When available we show x', y', z' formulas from the affine map array.") }}
+                          {{ partial "info_dot.html" (dict "general" "Each splitting map takes the actual parent first-orbit coordinate shown under G WP to a representative child coordinate in H." "context" "Substitute the parent coordinate triple into x, y, z; these inputs are coordinates, not necessarily independent Wyckoff parameters. Repeated H letters denote distinct child orbits.") }}
                         </th>
                       </tr>
                     </thead>
@@ -876,9 +882,9 @@
                               {{ if and (isset . "g_wp_rowspan") (gt .g_wp_rowspan 1) }}
                                 {{ $rowspan = .g_wp_rowspan }}
                               {{ end }}
-                              <td{{ if gt $rowspan 1 }} rowspan="{{ $rowspan }}"{{ end }}>{{ partial "value.html" (default .g_wp .g_wp_display) }}</td>
+                              <td{{ if gt $rowspan 1 }} rowspan="{{ $rowspan }}"{{ end }}>{{ partial "value.html" (default .g_wp .g_wp_display) }}{{ with .g_first_orbit_xyz }}<span class="table-header-subline">({{ . }})</span>{{ end }}</td>
                             {{ end }}
-                            <td>{{ partial "value.html" (default .h_wp .h_wp_display) }}</td>
+                            <td>{{ partial "value.html" (default .h_wp .h_wp_display) }}{{ with .h_first_orbit_xyz }}<span class="table-header-subline">branch: ({{ . }})</span>{{ end }}</td>
                             <td class="orbit-cell">
                               {{ if reflect.IsSlice $hOrbit }}
                                 {{ partial "orbit.html" $hOrbit }}
@@ -916,8 +922,8 @@
             "id" "minimal-supergroups"
             "toggle_key" "min_supergroups"
             "doc_url" (index $docMap "baernighausen")
-            "info_general" "A minimal supergroup is a smallest proper supergroup above the current group with no intermediate supergroup."
-            "info_context" "Buttons use the same HM #ITA (index) format used for maximal subgroups, now interpreted for upward relations."
+            "info_general" "A minimal supergroup G contains the current group H as a maximal proper subgroup: there is no group strictly between H and G."
+            "info_context" "Buttons identify a generated parent G above the current subgroup H. These are the incoming relations in the supplied finite dataset, not an enumeration of all possible supergroup embeddings. Same-ITA relations are presented separately."
           )
         }}
         <div data-section-body="min_supergroups">
@@ -927,7 +933,7 @@
               <div class="mapping-tabs" role="tablist" aria-label="Minimal supergroup mappings">
                 {{ range $idx, $item := $minSup }}
                   {{ $hmLabelLatex := $item.hm_short_latex }}
-                  {{ $hmLabelHtml := default $item.hm_short_html $item.hm_full_html }}
+                  {{ $hmLabelHtml := $item.hm_short_html }}
                   {{ $hmLabel := default $item.hall_key (default $item.hm_short $item.hm_short_unicode) }}
                   {{ $tabId := printf "min-tab-%d" $idx }}
                   <div class="mapping-tab-item" data-mapping-tab-item>
@@ -942,7 +948,7 @@
                       aria-controls="{{ printf "min-panel-%d" $idx }}"
                       aria-selected="{{ if eq $idx 0 }}true{{ else }}false{{ end }}"
                     >
-                      <span>{{ if $hmLabelLatex }}<span class="math-content">\({{ $hmLabelLatex }}\)</span>{{ else if $hmLabelHtml }}{{ $hmLabelHtml | safeHTML }}{{ else }}{{ $hmLabel }}{{ end }} #{{ partial "value.html" $item.ita_number }} ({{ partial "value.html" $item.index }})</span>
+                      <span>{{ if $hmLabelLatex }}<span class="math-content">\({{ $hmLabelLatex }}\)</span>{{ else if $hmLabelHtml }}{{ $hmLabelHtml | safeHTML }}{{ else }}{{ $hmLabel }}{{ end }} #{{ partial "value.html" $item.ita_number }} ({{ partial "value.html" $item.index }}); {{ $item.setting_it_nc }} · No. {{ add $idx 1 }}</span>
                     </button>
                     {{ with $item.hall_key }}
                       <a
@@ -980,25 +986,30 @@
                   data-is-reference-setting="{{ if $item.is_reference_setting }}true{{ else }}false{{ end }}"
                   {{ if ne $idx 0 }}hidden{{ end }}
                 >
+                  <p class="note">
+                    P={{ partial "value.html" $item.transformation_matrix_text }}, p={{ partial "value.html" $item.origin_shift_text }};
+                    type={{ partial "value.html" $item.subgroup_type }}{{ with $item.k_subtype }} ({{ . }}){{ end }}.
+                    {{ partial "info_dot.html" (dict "general" "The embedding is x_G = P*x_H + p; P is shown as rows, with subgroup basis vectors as its columns in the parent basis. Index [G:H] = |det(P)| times n_symops(G)/n_symops(H)." "context" "A t subgroup preserves the full translation lattice; a k subgroup preserves the point-group order. The splitting maps below run from parent coordinates to child coordinates and include the choices of child-orbit representatives.") }}
+                  </p>
                   <table class="data-table">
                     <thead>
                       <tr>
                         <th>
                           G WP
-                          {{ partial "info_dot.html" (dict "general" "A Wyckoff position in G refers to a site class in the current group." "context" "Here G WP denotes the starting side of each supergroup relation.") }}
+                          {{ partial "info_dot.html" (dict "general" "A Wyckoff position in G refers to a site class in the selected supergroup." "context" "G is the parent in the splitting G to H; it is not the current page group in this table.") }}
                         </th>
                         <th>
                           H WP
-                          {{ partial "info_dot.html" (dict "general" "A Wyckoff position in H is the corresponding site class after embedding into the supergroup." "context" "H WP reports the mapped target position in the selected supergroup setting.") }}
+                          {{ partial "info_dot.html" (dict "general" "A Wyckoff position in H is a site class in the current subgroup." "context" "H WP reports a child of the parent G orbit after symmetry reduction to the current group H.") }}
                         </th>
                         <th>
                           H Orbit mod centerings
                           <span class="table-header-subline">{{ partial "orbit.html" $targetCentering }}</span>
-                          {{ partial "info_dot.html" (dict "general" "An orbit lists equivalent coordinates under the target group action, reduced modulo centering translations when available." "context" "The full target orbit is obtained by combining these reduced coordinates with the centering translations shown in the header.") }}
+                          {{ partial "info_dot.html" (dict "general" "This is the generic H orbit in the current subgroup setting, reduced modulo its centering translations." "context" "Add each header centering translation to each reduced coordinate, modulo integer cell translations. The orbit parameters are local to H; the branch and affine map specify its relation to the parent.") }}
                         </th>
                         <th>
                           Algebraic Map
-                          {{ partial "info_dot.html" (dict "general" "Coordinate maps give explicit substitutions between source and target descriptions." "context" "When available we render x', y', z' formulas from affine_xyz.") }}
+                          {{ partial "info_dot.html" (dict "general" "The displayed affine map runs from the selected parent G first-orbit coordinate to the current subgroup H, just as in the maximal-subgroup table." "context" "Substitute the actual G coordinate triple shown under its label into x, y, z. The table describes splitting G to H, not an inverse map that lifts arbitrary H coordinates to G.") }}
                         </th>
                       </tr>
                     </thead>
@@ -1017,9 +1028,9 @@
                               {{ if and (isset . "g_wp_rowspan") (gt .g_wp_rowspan 1) }}
                                 {{ $rowspan = .g_wp_rowspan }}
                               {{ end }}
-                              <td{{ if gt $rowspan 1 }} rowspan="{{ $rowspan }}"{{ end }}>{{ partial "value.html" (default .g_wp .g_wp_display) }}</td>
+                              <td{{ if gt $rowspan 1 }} rowspan="{{ $rowspan }}"{{ end }}>{{ partial "value.html" (default .g_wp .g_wp_display) }}{{ with .g_first_orbit_xyz }}<span class="table-header-subline">({{ . }})</span>{{ end }}</td>
                             {{ end }}
-                            <td>{{ partial "value.html" (default .h_wp .h_wp_display) }}</td>
+                            <td>{{ partial "value.html" (default .h_wp .h_wp_display) }}{{ with .h_first_orbit_xyz }}<span class="table-header-subline">branch: ({{ . }})</span>{{ end }}</td>
                             <td class="orbit-cell">
                               {{ if reflect.IsSlice $hOrbit }}
                                 {{ partial "orbit.html" $hOrbit }}
@@ -1069,7 +1080,7 @@
               <div class="mapping-box">
                 <p class="note">
                   {{ partial "field_label.html" (dict "text" "Discrete Euclidean normalizer operations modulo centering translations" "url" (index $docMap "euclidean_normalizer")) }}
-                  {{ partial "info_dot.html" (dict "general" "The finite Euclidean normalizer consists of metric-preserving affine operations that map the space group to itself in this setting." "context" "This reduced list keeps one operation per class modulo the centering translations; combine each listed operation with the centering translations shown in the xyz column header to recover the full set. Continuous origin-shift freedoms are listed separately below.") }}
+                  {{ partial "info_dot.html" (dict "general" "This finite list comes from expanding the space group with cctbx Euclidean-normalizer generators, modulo integer cell translations. Its operations preserve the general metric of the recorded setting and normalize the group." "context" "The reduction uses the original space group's centering translations shown in the header, not all translations added by the normalizer. Adding these vectors recovers the generated finite list. Continuous origin shifts are listed separately; this is not the complete Euclidean normalizer of every special lattice metric.") }}
                 </p>
                 {{ if $euclidian }}
                   {{ $symopsModCentering := $euclidian.symops_mod_centering }}
@@ -1086,14 +1097,14 @@
                         <tr>
                           <th>#</th>
                           <th>
-                            {{ partial "field_label.html" (dict "text" "xyz mod centerings" "url" $docSymopsModCentering) }}
+                            {{ partial "field_label.html" (dict "text" "xyz mod centerings" "url" (index $docMap "euclidean_normalizer")) }}
                             <span class="table-header-subline">{{ partial "orbit.html" $normalizerCenteringTranslations }}</span>
                           </th>
                           <th>rot_type</th>
                           <th>sense</th>
                           <th>axis</th>
                           <th>screw/glide</th>
-                          <th>origin_shift</th>
+                          <th>origin_shift {{ partial "info_dot.html" (dict "general" "The shift q to a symmetry-element origin satisfies (I-P)*q = p-v, where v is the screw/glide vector." "context" "This descriptor differs from the affine translation p in x' = P*x + p.") }}</th>
                           <th>P det</th>
                           <th>P</th>
                           <th>p</th>
@@ -1134,7 +1145,7 @@
               <div class="mapping-box normalizer-inner-box">
                 <p class="note">
                   {{ partial "field_label.html" (dict "text" "Nontrivial discrete affine normalizer operations (coset representatives modulo the space group)" "url" (index $docMap "affine_normalizer")) }}
-                  {{ partial "info_dot.html" (dict "general" "Affine normalizer coset representatives generated from bounded unimodular integer linear parts; each row represents one equivalence class modulo the space group." "context" "This is a finite bounded representative table, not the complete infinite affine normalizer. Each row lists the crystal systems for which its linear part is compatible with a crystallographic metric.") }}
+                  {{ partial "info_dot.html" (dict "general" "Affine normalizer coset representatives generated from bounded unimodular integer linear parts; each row represents one equivalence class modulo the space group." "context" "This is a finite bounded representative table with integer linear entries in {-1,0,1}, not the complete infinite affine normalizer. The identity coset is omitted; nontrivial pure-translation cosets can remain. Each compatible system means that the linear part preserves every metric in that reference-setting family after transport to this Hall basis. P orthogonal tests the general physical metric of this setting (PᵀgP = g), not PᵀP = I in fractional coordinates.") }}
                 </p>
                 {{ if $affine }}
                   <p class="mapping-meta">
@@ -1152,7 +1163,7 @@
                       <thead>
                         <tr>
                           <th>#</th>
-                          <th>{{ partial "field_label.html" (dict "text" "xyz" "url" $docSymops) }}</th>
+                          <th>{{ partial "field_label.html" (dict "text" "xyz" "url" (index $docMap "affine_normalizer")) }}</th>
                           <th>compatible systems</th>
                           <th>P det</th>
                           <th>P orthogonal</th>
@@ -1180,7 +1191,7 @@
                         {{ end }}
                       </tbody>
                     </table>
-                    <p class="note">Showing all {{ len $symops }} discrete affine normalizer operations.</p>
+                    <p class="note">Showing all {{ len $symops }} stored nontrivial affine-normalizer coset representatives.</p>
                   {{ else }}
                     <p class="note">No discrete affine normalizer operations available.</p>
                   {{ end }}
@@ -1193,7 +1204,7 @@
                 <div class="mapping-box normalizer-inner-box">
                   <p class="note">
                     {{ partial "field_label.html" (dict "text" "Continuous normalizer origin shifts" "url" (index $docMap "continuous_normalizer")) }}
-                    {{ partial "info_dot.html" (dict "general" "The continuous part of the normalizer is the subspace of continuous origin shifts, described by its dimension and exact fractional basis vectors rather than by enumerating operations." "context" "Each basis vector spans one continuously allowed origin-shift direction for this setting.") }}
+                    {{ partial "info_dot.html" (dict "general" "This is the continuous origin-shift subspace fixed by every space-group linear operation R: R*v = v. It is described by exact fractional-coordinate basis vectors." "context" "Arbitrary real linear combinations are allowed shifts. These vectors do not enumerate any continuous rotational or other linear freedoms of the full normalizer.") }}
                   </p>
                   {{ $basis := $continuous.basis_vectors }}
                   {{ if and $basis (gt (len $basis) 0) }}
@@ -1232,8 +1243,8 @@
             "id" "isomorphic-subgroups"
             "toggle_key" "k_subgroups"
             "doc_url" (index $docMap "isomorphic_subgroups")
-            "info_general" "Isomorphic subgroup relations describe transformations into commensurate cells of the same space group."
-            "info_context" "Dropdown entries are labeled as No. N (k), where N is the list number and k is the index, typically |det(P)| for transformation matrix P."
+            "info_general" "Isomorphic subgroup relations describe embeddings of the same space-group type in commensurate cells, using the same setting on both sides."
+            "info_context" "Dropdown entries are No. N (k), where N is the list number and k = |det(P)| is the subgroup index in this same-setting convention. This is a bounded generated list, not all possible sublattices or origins. Index one, if present, is not a proper subgroup."
           )
         }}
         <div data-section-body="k_subgroups">
@@ -1276,7 +1287,7 @@
                   <p class="note">
                     P={{ partial "value.html" $item.transformation_matrix_text }},
                     p={{ partial "value.html" $item.origin_shift_text }}
-                    {{ partial "info_dot.html" (dict "general" "An affine transformation uses a matrix P and shift vector p to map coordinate systems." "context" "For each mapping, P and p are shown in the matrix-and-shift form used on this page.") }}
+                    {{ partial "info_dot.html" (dict "general" "The subgroup embedding is x_G = P*x_H + p, with column vectors of fractional coordinates. Thus x_H = inverse(P)*(x_G - p)." "context" "P is shown as three rows; its columns are subgroup basis vectors in the parent basis. The per-orbit splitting maps below also select distinct child-orbit representatives.") }}
                   </p>
                   <table class="data-table">
                     <thead>
@@ -1292,11 +1303,11 @@
                         <th>
                           H Orbit mod centerings
                           <span class="table-header-subline">{{ partial "orbit.html" $targetCentering }}</span>
-                          {{ partial "info_dot.html" (dict "general" "An orbit entry lists representative coordinates generated in the target setting, reduced modulo centering translations when available." "context" "The full target orbit is obtained by combining these reduced coordinates with the centering translations shown in the header.") }}
+                          {{ partial "info_dot.html" (dict "general" "An orbit entry lists representative coordinates generated in the target setting, reduced modulo centering translations when available." "context" "Add each header centering translation to each reduced coordinate, modulo integer cell translations. The orbit parameters are local to H; the branch and affine map specify its relation to the parent.") }}
                         </th>
                         <th>
                           Algebraic Map
-                          {{ partial "info_dot.html" (dict "general" "Algebraic map entries provide explicit coordinate substitutions." "context" "If affine data is present, we render x', y', z' equations directly from it.") }}
+                          {{ partial "info_dot.html" (dict "general" "Each map acts on the actual parent first-orbit coordinate shown under G WP and produces a child coordinate in the enlarged H cell." "context" "Inputs x, y, z are parent coordinates, not independent Wyckoff parameters. Repeated H letters identify distinct child orbits of the same Wyckoff type.") }}
                         </th>
                       </tr>
                     </thead>
@@ -1315,9 +1326,9 @@
                               {{ if and (isset . "g_wp_rowspan") (gt .g_wp_rowspan 1) }}
                                 {{ $rowspan = .g_wp_rowspan }}
                               {{ end }}
-                              <td{{ if gt $rowspan 1 }} rowspan="{{ $rowspan }}"{{ end }}>{{ partial "value.html" (default .g_wp .g_wp_display) }}</td>
+                              <td{{ if gt $rowspan 1 }} rowspan="{{ $rowspan }}"{{ end }}>{{ partial "value.html" (default .g_wp .g_wp_display) }}{{ with .g_first_orbit_xyz }}<span class="table-header-subline">({{ . }})</span>{{ end }}</td>
                             {{ end }}
-                            <td>{{ partial "value.html" (default .h_wp .h_wp_display) }}</td>
+                            <td>{{ partial "value.html" (default .h_wp .h_wp_display) }}{{ with .h_first_orbit_xyz }}<span class="table-header-subline">branch: ({{ . }})</span>{{ end }}</td>
                             <td class="orbit-cell">
                               {{ if reflect.IsSlice $hOrbit }}
                                 {{ partial "orbit.html" $hOrbit }}
@@ -1458,7 +1469,7 @@
             "toggle_key" "harker"
             "doc_url" (index $docMap "harker_planes")
             "info_general" "Harker planes are the planes in a Patterson map onto which symmetry-related interatomic vectors accumulate."
-            "info_context" "Each plane is given by its oriented normal, a point it passes through, and the algebraic form of the locus."
+            "info_context" "Each row gives a parametrized Patterson-vector locus, a point p on it, and a normal n in the direct-lattice basis. With the cell metric g its equation is nᵀg(u-p) = 0; the fractional-coordinate normal is not a reciprocal-space Miller-index covector."
           )
         }}
         <div data-section-body="harker">
