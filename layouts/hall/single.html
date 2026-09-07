@@ -1,7 +1,7 @@
 {{ define "main" }}
   {{ $docMap := default (dict) .Params.field_doc_urls }}
-  {{ $docSymops := default "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/symops" (index $docMap "symops") }}
-  {{ $docSymopsModCentering := default "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/symops_mod_centering" (index $docMap "symops_mod_centering") }}
+  {{ $docSymops := default "https://schemas.httk.org/defs/v0.1/properties/spacegroups/symops" (index $docMap "symops") }}
+  {{ $docSymopsModCentering := default "https://schemas.httk.org/defs/v0.1/properties/spacegroups/symops_mod_centering" (index $docMap "symops_mod_centering") }}
   <section id="detail-view" class="view is-active" aria-label="Spacegroup detail view">
     <div class="detail-header panel">
       <div class="detail-meta">

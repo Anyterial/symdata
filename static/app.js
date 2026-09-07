@@ -73,13 +73,13 @@ const POINTGROUP_INDEX_DATA_PATH = "data/pointgroup_index.json.gz";
 const DATASET_SPACEGROUPS = "spacegroups";
 const DATASET_POINTGROUPS = "pointgroups";
 const FIELD_DOC_URLS = {
-  hall: "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/hall",
-  hm_entry: "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/hm_entry",
-  hm_short: "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/hm_short",
-  hm_full: "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/hm_full",
-  hm_extended: "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/hm_extended",
-  it_number: "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/it_number",
-  setting_it_nc: "https://schemas.anyterial.se/defs/v0.1/properties/spacegroups/setting_it_nc"
+  hall: "https://schemas.httk.org/defs/v0.1/properties/spacegroups/hall",
+  hm_entry: "https://schemas.httk.org/defs/v0.1/properties/spacegroups/hm_entry",
+  hm_short: "https://schemas.httk.org/defs/v0.1/properties/spacegroups/hm_short",
+  hm_full: "https://schemas.httk.org/defs/v0.1/properties/spacegroups/hm_full",
+  hm_extended: "https://schemas.httk.org/defs/v0.1/properties/spacegroups/hm_extended",
+  it_number: "https://schemas.httk.org/defs/v0.1/properties/spacegroups/it_number",
+  setting_it_nc: "https://schemas.httk.org/defs/v0.1/properties/spacegroups/setting_it_nc"
 };
 
 const SETTINGS_ALL = "all";
