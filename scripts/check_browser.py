@@ -20,9 +20,23 @@ def main():
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(base + '/')
         expect(page.locator('tr.sg-row')).to_have_count(230)
-        symbol = page.locator('tr.sg-row').first.locator('[data-symbol-ascii]').first
+        expect(page.locator('#table-body [data-symbol-ascii], #table-body .symbol-copy')).to_have_count(0)
+        page.locator('#settings-toggle-index').click()
+        expect(page.locator('tr.sg-row')).to_have_count(527)
+        page.locator('#search-input').fill('68:1ba-c')
+        expect(page.locator('tr.sg-row')).to_have_count(1)
+        page.locator('tr.sg-row').click()
+        hall_select = page.locator('select[aria-label="Select Hall symbol"]')
+        expect(hall_select.locator('option')).to_have_count(527)
+        assert hall_select.evaluate('(s) => s.dataset.selected === s.selectedOptions[0].dataset.matchValue')
+        # Both equivalent #68 n:c codes must remain selectable.
+        expect(page.locator('select[data-secondary-select] option')).to_have_count(530)
+
+        symbol = page.locator('.metric[data-symbol-ascii]:not([data-symbol-aliases])').first
         line = symbol.locator('.symbol-ascii')
+        page.mouse.move(0, 0)
         expect(line).to_have_css('opacity', '0')
+        expect(line).to_have_css('font-size', '10px')
         symbol.hover()
         expect(line).to_have_css('opacity', '1')
         ascii_text = symbol.get_attribute('data-symbol-ascii')
@@ -31,8 +45,8 @@ def main():
         line.locator('button').click()
         expect(line.locator('[role="status"]')).to_have_text('Copied')
         assert page.evaluate('navigator.clipboard.readText()') == ascii_text
-        assert page.url == original_url, 'Copying must not navigate the table row'
-        # Users can select the literal ASCII text without activating row links.
+        assert page.url == original_url, 'Copying must not navigate away from the details'
+        # Users can select the literal ASCII text without activating navigation.
         line.locator('code').evaluate("""node => {
             const range = document.createRange(); range.selectNodeContents(node);
             getSelection().removeAllRanges(); getSelection().addRange(range);
@@ -55,17 +69,6 @@ def main():
             navigator.clipboard.writeText = window.originalWriteText;
             getSelection().removeAllRanges();
         }""")
-
-        page.locator('#settings-toggle-index').click()
-        expect(page.locator('tr.sg-row')).to_have_count(527)
-        page.locator('#search-input').fill('68:1ba-c')
-        expect(page.locator('tr.sg-row')).to_have_count(1)
-        page.locator('tr.sg-row').click()
-        hall_select = page.locator('select[aria-label="Select Hall symbol"]')
-        expect(hall_select.locator('option')).to_have_count(527)
-        assert hall_select.evaluate('(s) => s.dataset.selected === s.selectedOptions[0].dataset.matchValue')
-        # Both equivalent #68 n:c codes must remain selectable.
-        expect(page.locator('select[data-secondary-select] option')).to_have_count(530)
 
         page.goto(base + '/nc/146:R/?theme=light&symops=closed#wyckoff-positions')
         expect(hall_select).to_have_value(re.compile(r'/hall/p_3\*/\?settings=all'))
@@ -104,6 +107,7 @@ def main():
 
         page.goto(base + '/pointgroup/')
         expect(page.locator('tr.sg-row')).to_have_count(32)
+        expect(page.locator('#table-body [data-symbol-ascii], #table-body .symbol-copy')).to_have_count(0)
         page.locator('#search-input').fill('cubic')
         expect(page.locator('tr.sg-row')).to_have_count(5)
         page.goto(base + '/pointgroup/3/?theme=light')
@@ -125,6 +129,7 @@ def main():
         page.route('**/data/*_index.json.gz', lambda route: route.fulfill(status=404, body='Unavailable'))
         page.goto(base + '/?settings=all')
         expect(page.locator('tr.sg-row')).to_have_count(527, timeout=30000)
+        expect(page.locator('#table-body [data-symbol-ascii], #table-body .symbol-copy')).to_have_count(0)
         page.locator('#search-input').fill('68:1ba-c')
         expect(page.locator('tr.sg-row')).to_have_count(1)
         page.goto(base + '/pointgroup/')

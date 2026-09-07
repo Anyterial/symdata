@@ -1204,20 +1204,24 @@ html[data-theme="dark"] .mapping-tab-external-icon {
   }
 }
 
-/* Reserve a line so revealing the copy controls does not move nearby symbols. */
+/* Fit a compact ASCII line into the detail boxes with minimal extra height. */
 span[data-symbol-ascii] {
   display: inline-block;
   vertical-align: top;
   max-width: 100%;
 }
 
+.metric[data-symbol-ascii] {
+  padding-bottom: 2px;
+}
+
 .symbol-ascii {
   display: flex;
   align-items: flex-start;
-  gap: 5px;
-  margin-top: 4px;
+  gap: 3px;
+  margin-top: 1px;
   color: #666;
-  font: 12px/1.4 ui-monospace, monospace;
+  font: 10px/1.1 ui-monospace, monospace;
   font-weight: normal;
   letter-spacing: normal;
   text-transform: none;
@@ -1241,12 +1245,12 @@ html[data-theme="dark"] .symbol-ascii {
   flex: none;
   border: 0;
   border-radius: 3px;
-  padding: 0 4px;
+  padding: 0;
   background: transparent;
   color: inherit;
-  min-width: 24px;
-  min-height: 24px;
-  font: 16px/1.1 "DejaVu Sans", sans-serif;
+  min-width: 14px;
+  min-height: 12px;
+  font: 12px/1 "DejaVu Sans", sans-serif;
   cursor: pointer;
 }
 
@@ -1256,8 +1260,7 @@ html[data-theme="dark"] .symbol-ascii {
 }
 
 [data-symbol-ascii]:hover > .symbol-ascii,
-[data-symbol-ascii]:focus-within > .symbol-ascii,
-td:hover > [data-symbol-ascii] > .symbol-ascii {
+[data-symbol-ascii]:focus-within > .symbol-ascii {
   opacity: 1;
   pointer-events: auto;
 }
@@ -1277,6 +1280,11 @@ td:hover > [data-symbol-ascii] > .symbol-ascii {
 }
 
 @media (hover: none) {
+  .symbol-copy {
+    min-width: 24px;
+    min-height: 24px;
+  }
+
   .symbol-ascii {
     opacity: 1;
     pointer-events: auto;

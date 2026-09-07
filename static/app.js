@@ -660,13 +660,6 @@ const initializeAsciiSymbols = (root = document) => {
   });
 };
 
-const withAsciiSymbol = (html, ascii, aliases = []) => {
-  if (!ascii) {
-    return html;
-  }
-  return `<span data-symbol-ascii="${escapeHtml(ascii)}" data-symbol-aliases="${escapeHtml(JSON.stringify(aliases))}">${html}</span>`;
-};
-
 const renderHmWithAliases = (row) => {
   const shortHtml = firstNonEmpty(row.hm_short_html, row.short_hm_symbol_html);
   const shortLatex = firstNonEmpty(row.hm_short_latex, row.short_hm_symbol_latex);
@@ -681,14 +674,14 @@ const renderHmWithAliases = (row) => {
   const aliasesPlain = getArrayValues(row.hm_short_aliases || row.short_hm_symbol_aliases);
   const aliases = aliasesHtml.length ? aliasesHtml : aliasesLatex.length ? aliasesLatex : aliasesUnicode.length ? aliasesUnicode : aliasesPlain;
   if (!aliases.length) {
-    return withAsciiSymbol(baseLabel, row.hm_short);
+    return baseLabel;
   }
   const aliasLabel = aliasesHtml.length
     ? aliases.map((item) => renderInlineHtml(item)).join(", ")
     : aliasesLatex.length
       ? aliases.map((item) => renderInlineLatex(item)).join(", ")
       : aliases.map((item) => escapeHtml(formatValue(item))).join(", ");
-  return withAsciiSymbol(`${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`, row.hm_short, aliasesPlain);
+  return `${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`;
 };
 
 const renderHallWithLatex = (row) => {
@@ -705,14 +698,14 @@ const renderHallWithLatex = (row) => {
   const aliasesPlain = getArrayValues(row.hall_aliases);
   const aliases = aliasesHtml.length ? aliasesHtml : aliasesLatex.length ? aliasesLatex : aliasesUnicode.length ? aliasesUnicode : aliasesPlain;
   if (!aliases.length) {
-    return withAsciiSymbol(baseLabel, row.hall);
+    return baseLabel;
   }
   const aliasLabel = aliasesHtml.length
     ? aliases.map((item) => renderInlineHtml(item)).join(", ")
     : aliasesLatex.length
       ? aliases.map((item) => renderInlineLatex(item)).join(", ")
       : aliases.map((item) => escapeHtml(formatValue(item))).join(", ");
-  return withAsciiSymbol(`${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`, row.hall, aliasesPlain);
+  return `${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`;
 };
 
 const renderHmEntry = (row) => {
@@ -729,14 +722,14 @@ const renderHmEntry = (row) => {
   const aliasesPlain = getArrayValues(row.hm_entry_aliases);
   const aliases = aliasesHtml.length ? aliasesHtml : aliasesLatex.length ? aliasesLatex : aliasesUnicode.length ? aliasesUnicode : aliasesPlain;
   if (!aliases.length) {
-    return withAsciiSymbol(baseLabel, row.hm_entry);
+    return baseLabel;
   }
   const aliasLabel = aliasesHtml.length
     ? aliases.map((item) => renderInlineHtml(item)).join(", ")
     : aliasesLatex.length
       ? aliases.map((item) => renderInlineLatex(item)).join(", ")
       : aliases.map((item) => escapeHtml(formatValue(item))).join(", ");
-  return withAsciiSymbol(`${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`, row.hm_entry, aliasesPlain);
+  return `${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`;
 };
 
 const renderPointgroupSymbol = (row) => {
@@ -745,7 +738,7 @@ const renderPointgroupSymbol = (row) => {
 
 const renderPointgroupSchoenflies = (row) => {
   if (row.schoenflies_html) {
-    return withAsciiSymbol(renderInlineHtml(row.schoenflies_html), row.schoenflies);
+    return renderInlineHtml(row.schoenflies_html);
   }
   return renderMaybeMath(row.schoenflies_unicode || row.schoenflies || row.schoenflies_latex);
 };
@@ -985,7 +978,6 @@ const renderTable = () => {
     })
     .join("");
 
-  initializeAsciiSymbols(tableBody);
   emptyState.hidden = rows.length > 0;
   emptyState.textContent = `No matching ${config.emptyLabel} found.`;
   updateSummary();
