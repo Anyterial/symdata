@@ -1,6 +1,7 @@
 baseURL = "/"
 languageCode = "en-us"
 title = "Spacegroup Data Explorer"
+disableKinds = ["taxonomy", "term"]
 
 [permalinks]
 hall = "/hall/:slug/"
