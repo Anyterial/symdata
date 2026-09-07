@@ -618,6 +618,55 @@ const normalizeDropdownSymbolLabel = (value) => {
   return text.replace(/(.)\u0305/g, "-$1");
 };
 
+// Keep the source spelling: stripping HTML would lose screw subscripts,
+// overbars, setting annotations, and the alignment of multiline symbols.
+const initializeAsciiSymbols = (root = document) => {
+  root.querySelectorAll("[data-symbol-ascii]").forEach((box) => {
+    if (box.querySelector(":scope > .symbol-ascii") || !box.dataset.symbolAscii) {
+      return;
+    }
+    const aliases = JSON.parse(box.dataset.symbolAliases || "null") || [];
+    const ascii = box.dataset.symbolAscii + (aliases.length ? ` (${aliases.join(", ")})` : "");
+    const line = document.createElement("span");
+    line.className = "symbol-ascii tex2jax_ignore";
+    const text = document.createElement("code");
+    text.textContent = ascii;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "symbol-copy";
+    button.textContent = "⮺";
+    button.setAttribute("aria-label", `Copy ASCII symbol: ${ascii}`);
+    button.title = "Copy ASCII symbol";
+    const status = document.createElement("span");
+    status.className = "symbol-copy-status";
+    status.setAttribute("role", "status");
+    button.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      status.textContent = "";
+      try {
+        await navigator.clipboard.writeText(ascii);
+        status.textContent = "Copied";
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(text);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        status.textContent = "Select and copy manually";
+      }
+    });
+    line.append(text, button, status);
+    box.append(line);
+  });
+};
+
+const withAsciiSymbol = (html, ascii, aliases = []) => {
+  if (!ascii) {
+    return html;
+  }
+  return `<span data-symbol-ascii="${escapeHtml(ascii)}" data-symbol-aliases="${escapeHtml(JSON.stringify(aliases))}">${html}</span>`;
+};
+
 const renderHmWithAliases = (row) => {
   const shortHtml = firstNonEmpty(row.hm_short_html, row.short_hm_symbol_html);
   const shortLatex = firstNonEmpty(row.hm_short_latex, row.short_hm_symbol_latex);
@@ -632,14 +681,14 @@ const renderHmWithAliases = (row) => {
   const aliasesPlain = getArrayValues(row.hm_short_aliases || row.short_hm_symbol_aliases);
   const aliases = aliasesHtml.length ? aliasesHtml : aliasesLatex.length ? aliasesLatex : aliasesUnicode.length ? aliasesUnicode : aliasesPlain;
   if (!aliases.length) {
-    return baseLabel;
+    return withAsciiSymbol(baseLabel, row.hm_short);
   }
   const aliasLabel = aliasesHtml.length
     ? aliases.map((item) => renderInlineHtml(item)).join(", ")
     : aliasesLatex.length
       ? aliases.map((item) => renderInlineLatex(item)).join(", ")
       : aliases.map((item) => escapeHtml(formatValue(item))).join(", ");
-  return `${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`;
+  return withAsciiSymbol(`${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`, row.hm_short, aliasesPlain);
 };
 
 const renderHallWithLatex = (row) => {
@@ -656,14 +705,14 @@ const renderHallWithLatex = (row) => {
   const aliasesPlain = getArrayValues(row.hall_aliases);
   const aliases = aliasesHtml.length ? aliasesHtml : aliasesLatex.length ? aliasesLatex : aliasesUnicode.length ? aliasesUnicode : aliasesPlain;
   if (!aliases.length) {
-    return baseLabel;
+    return withAsciiSymbol(baseLabel, row.hall);
   }
   const aliasLabel = aliasesHtml.length
     ? aliases.map((item) => renderInlineHtml(item)).join(", ")
     : aliasesLatex.length
       ? aliases.map((item) => renderInlineLatex(item)).join(", ")
       : aliases.map((item) => escapeHtml(formatValue(item))).join(", ");
-  return `${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`;
+  return withAsciiSymbol(`${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`, row.hall, aliasesPlain);
 };
 
 const renderHmEntry = (row) => {
@@ -680,14 +729,14 @@ const renderHmEntry = (row) => {
   const aliasesPlain = getArrayValues(row.hm_entry_aliases);
   const aliases = aliasesHtml.length ? aliasesHtml : aliasesLatex.length ? aliasesLatex : aliasesUnicode.length ? aliasesUnicode : aliasesPlain;
   if (!aliases.length) {
-    return baseLabel;
+    return withAsciiSymbol(baseLabel, row.hm_entry);
   }
   const aliasLabel = aliasesHtml.length
     ? aliases.map((item) => renderInlineHtml(item)).join(", ")
     : aliasesLatex.length
       ? aliases.map((item) => renderInlineLatex(item)).join(", ")
       : aliases.map((item) => escapeHtml(formatValue(item))).join(", ");
-  return `${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`;
+  return withAsciiSymbol(`${baseLabel}&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;<span class="table-aliases-muted">(${aliasLabel})</span>`, row.hm_entry, aliasesPlain);
 };
 
 const renderPointgroupSymbol = (row) => {
@@ -696,7 +745,7 @@ const renderPointgroupSymbol = (row) => {
 
 const renderPointgroupSchoenflies = (row) => {
   if (row.schoenflies_html) {
-    return renderInlineHtml(row.schoenflies_html);
+    return withAsciiSymbol(renderInlineHtml(row.schoenflies_html), row.schoenflies);
   }
   return renderMaybeMath(row.schoenflies_unicode || row.schoenflies || row.schoenflies_latex);
 };
@@ -936,6 +985,7 @@ const renderTable = () => {
     })
     .join("");
 
+  initializeAsciiSymbols(tableBody);
   emptyState.hidden = rows.length > 0;
   emptyState.textContent = `No matching ${config.emptyLabel} found.`;
   updateSummary();
@@ -1235,6 +1285,7 @@ const maybeRedirectToItaReferenceSetting = () => {
 };
 
 const setupEvents = () => {
+  initializeAsciiSymbols();
   if (searchInput) {
     let debounceTimer = null;
     searchInput.addEventListener("input", () => {
@@ -1293,7 +1344,7 @@ const setupEvents = () => {
       if (!(target instanceof Element)) {
         return;
       }
-      if (target.closest("a, button, input, select, textarea, label")) {
+      if (target.closest("a, button, input, select, textarea, label, .symbol-ascii") || !window.getSelection().isCollapsed) {
         return;
       }
 

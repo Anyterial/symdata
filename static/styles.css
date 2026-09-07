@@ -1203,3 +1203,82 @@ html[data-theme="dark"] .mapping-tab-external-icon {
     transform: translateY(0);
   }
 }
+
+/* Reserve a line so revealing the copy controls does not move nearby symbols. */
+span[data-symbol-ascii] {
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
+}
+
+.symbol-ascii {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 4px;
+  color: #666;
+  font: 12px/1.4 ui-monospace, monospace;
+  font-weight: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .symbol-ascii {
+  color: #aaa;
+}
+
+.symbol-ascii code {
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+  user-select: text;
+}
+
+.symbol-copy {
+  flex: none;
+  border: 0;
+  border-radius: 3px;
+  padding: 0 4px;
+  background: transparent;
+  color: inherit;
+  min-width: 24px;
+  min-height: 24px;
+  font: 16px/1.1 "DejaVu Sans", sans-serif;
+  cursor: pointer;
+}
+
+.symbol-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+[data-symbol-ascii]:hover > .symbol-ascii,
+[data-symbol-ascii]:focus-within > .symbol-ascii,
+td:hover > [data-symbol-ascii] > .symbol-ascii {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.symbol-copy-status:empty {
+  display: none;
+}
+
+.mapping-tab-item[data-symbol-ascii] {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mapping-tab-item[data-symbol-ascii] > .mapping-tab-external-link {
+  top: 14px;
+}
+
+@media (hover: none) {
+  .symbol-ascii {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

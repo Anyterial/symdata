@@ -15,11 +15,47 @@ def main():
     base = sys.argv[1].rstrip('/')
     errors = []
     with sync_playwright() as playwright:
-        browser = playwright.firefox.launch(headless=True)
+        browser = playwright.firefox.launch(headless=True, firefox_user_prefs={"dom.events.testing.asyncClipboard": True})
         page = browser.new_page(viewport={'width': 1440, 'height': 1000})
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(base + '/')
         expect(page.locator('tr.sg-row')).to_have_count(230)
+        symbol = page.locator('tr.sg-row').first.locator('[data-symbol-ascii]').first
+        line = symbol.locator('.symbol-ascii')
+        expect(line).to_have_css('opacity', '0')
+        symbol.hover()
+        expect(line).to_have_css('opacity', '1')
+        ascii_text = symbol.get_attribute('data-symbol-ascii')
+        expect(line.locator('code')).to_have_text(ascii_text)
+        original_url = page.url
+        line.locator('button').click()
+        expect(line.locator('[role="status"]')).to_have_text('Copied')
+        assert page.evaluate('navigator.clipboard.readText()') == ascii_text
+        assert page.url == original_url, 'Copying must not navigate the table row'
+        # Users can select the literal ASCII text without activating row links.
+        line.locator('code').evaluate("""node => {
+            const range = document.createRange(); range.selectNodeContents(node);
+            getSelection().removeAllRanges(); getSelection().addRange(range);
+        }""")
+        line.locator('code').click()
+        assert page.url == original_url
+        page.evaluate('getSelection().removeAllRanges()')
+        page.mouse.move(0, 0)
+        line.locator('button').focus()
+        expect(line).to_have_css('opacity', '1')
+        # A rejected clipboard write leaves a selectable fallback, not a success message.
+        page.evaluate("""() => {
+            window.originalWriteText = navigator.clipboard.writeText;
+            navigator.clipboard.writeText = () => Promise.reject(new Error('Denied'));
+        }""")
+        line.locator('button').click()
+        expect(line.locator('[role="status"]')).to_have_text('Select and copy manually')
+        assert page.evaluate('getSelection().toString()') == ascii_text
+        page.evaluate("""() => {
+            navigator.clipboard.writeText = window.originalWriteText;
+            getSelection().removeAllRanges();
+        }""")
+
         page.locator('#settings-toggle-index').click()
         expect(page.locator('tr.sg-row')).to_have_count(527)
         page.locator('#search-input').fill('68:1ba-c')
@@ -56,6 +92,16 @@ def main():
         page.locator('[data-section-toggle="symops"]').click()
         expect(page.locator('a.inline-detail-link')).to_have_attribute('href', re.compile('symops=closed'))
 
+        # Multiline extended symbols must copy exactly, including spaces/newlines.
+        page.goto(base + '/hall/c_-2y/?settings=all')
+        extended = page.locator('.metric-tall-two-rows[data-symbol-ascii]')
+        expect(extended.locator('.symbol-copy')).to_have_count(1)
+        extended.hover()
+        extended.locator('.symbol-copy').click()
+        expect(extended.locator('[role="status"]')).to_have_text('Copied')
+        assert page.evaluate('navigator.clipboard.readText()') == 'C 1 m 1\n  a'
+        assert page.locator('[data-section-body="setting_transforms"] [data-symbol-ascii]').first.get_attribute('data-symbol-ascii')
+
         page.goto(base + '/pointgroup/')
         expect(page.locator('tr.sg-row')).to_have_count(32)
         page.locator('#search-input').fill('cubic')
@@ -65,6 +111,10 @@ def main():
         complex_rows = page.locator('[data-section-body="char_complex"] tbody tr')
         expect(complex_rows).to_have_count(3)
         expect(complex_rows).to_contain_text(['A', 'E (E_a)', 'E (E_b)'])
+        complex_rows.nth(1).locator('.symbol-copy').focus()
+        complex_rows.nth(1).locator('.symbol-copy').press('Enter')
+        expect(complex_rows.nth(1).locator('[role="status"]')).to_have_text('Copied')
+        assert page.evaluate('navigator.clipboard.readText()') == 'E_a'
         expect(complex_rows.nth(1)).to_contain_text('sqrt(3)/2')
         page.locator('[data-section-toggle="char_real"]').click()
         expect(page.locator('.related-link').first).to_have_attribute('href', re.compile('char_real=closed'))
@@ -81,7 +131,7 @@ def main():
         expect(page.locator('tr.sg-row')).to_have_count(32, timeout=30000)
         assert not errors, errors
         browser.close()
-    print('Firefox checks passed: indices, fallback loading, aliases, setting modes, subgroup tabs, character tables, themes, and section/query state.')
+    print('Firefox checks passed: indices, fallback loading, aliases, setting modes, subgroup tabs, character tables, ASCII clipboard copying/selection, themes, and section/query state.')
 
 
 if __name__ == '__main__':

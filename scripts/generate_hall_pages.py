@@ -947,6 +947,7 @@ def build_setting_transforms(
             item = {
                 "hall_key": target_key,
                 "hall_entry": sibling.get("hall_entry"),
+                "hall": sibling.get("hall"),
                 "hall_latex": sibling.get("hall_latex"),
                 "hall_html": sibling.get("hall_html"),
                 "hall_unicode": sibling.get("hall_unicode"),
@@ -1020,6 +1021,7 @@ def build_related_settings(
                 {
                     "hall_key": item["hall_key"],
                     "hall_entry": item.get("hall_entry"),
+                    "hall": item.get("hall"),
                     "hall_latex": item.get("hall_latex"),
                     "hall_html": item.get("hall_html"),
                     "hall_unicode": item.get("hall_unicode"),

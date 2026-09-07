@@ -123,7 +123,7 @@
           {{ $docCrystalSystem := index $docMap "crystal_system" }}
           <p class="note">The flag “is chiral” means Sohncke: all operations preserve orientation (65 space-group types). “Is enantiomorphic” identifies the 22 types in 11 handed pairs. “Is centric” means inversion is present; “is reference setting” identifies the cctbx reference setting used here for STD.</p>
           <div class="identity-grid">
-            <div class="metric">
+            <div class="metric" data-symbol-ascii="{{ .Params.hm_short }}" data-symbol-aliases="{{ .Params.hm_short_aliases | jsonify }}">
               <label>
                 {{ partial "field_label.html" (dict "text" "HM Symbol Short" "url" $docHMShort) }}
                 {{
@@ -205,7 +205,7 @@
                 <div class="metric-aliases-block">{{ partial "value.html" $nCAliases }}</div>
               {{ end }}
             </div>
-            <div class="metric">
+            <div class="metric" data-symbol-ascii="{{ .Params.hm_entry }}" data-symbol-aliases="{{ .Params.hm_entry_aliases | jsonify }}">
               <label>
                 {{ partial "field_label.html" (dict "text" "H-M Entry" "url" $docHMEntry) }}
                 {{
@@ -230,7 +230,7 @@
                 <div class="metric-aliases-block">{{ partial "value.html" .Params.hm_entry_aliases }}</div>
               {{ end }}
             </div>
-            <div class="metric">
+            <div class="metric" data-symbol-ascii="{{ .Params.hm_full }}">
               <label>
                 {{ partial "field_label.html" (dict "text" "HM Symbol Full" "url" $docHMFull) }}
                 {{
@@ -270,7 +270,7 @@
                 {{- if $settingAnnotation }} - {{ partial "value.html" $settingAnnotation }}{{ end -}}
               </strong>
             </div>
-            <div class="metric">
+            <div class="metric" data-symbol-ascii="{{ .Params.hall }}" data-symbol-aliases="{{ .Params.hall_aliases | jsonify }}">
               <label>
                 {{ partial "field_label.html" (dict "text" "Hall Symbol" "url" $docHall) }}
                 {{
@@ -332,7 +332,7 @@
                 </div>
               {{ end }}
             </div>
-            <div class="metric metric-tall-two-rows">
+            <div class="metric metric-tall-two-rows" data-symbol-ascii="{{ .Params.hm_extended }}">
               <label>
                 {{ partial "field_label.html" (dict "text" "HM SYMBOL EXTENDED" "url" $docHMExtended) }}
                 {{
@@ -384,7 +384,7 @@
               </label>
               <strong>{{ partial "value.html" .Params.laue_class }}</strong>
             </div>
-            <div class="metric">
+            <div class="metric" data-symbol-ascii="{{ .Params.schoenflies }}">
               <label>
                 {{ partial "field_label.html" (dict "text" "Schoenflies" "url" $docSchoenflies) }}
                 {{
@@ -448,7 +448,7 @@
               {{ if not $hmUnicode }}{{ $hmUnicode = default .Params.hm_short .Params.short_hm_symbol }}{{ end }}
               {{ partial "value.html" $hmUnicode }}
             </p>
-            <p class="note">
+            <p class="note" data-symbol-ascii="{{ .Params.hm_short_std }}">
               {{ partial "field_label.html" (dict "text" "Standard short HM symbol" "url" (index $docMap "hm_short_std")) }}
               {{
                 partial "info_dot.html" (dict
@@ -460,7 +460,7 @@
               {{ with .Params.hm_short_std_markup }}{{ $stdShort = default $stdShort (index . "unicode") }}{{ end }}
               {{ partial "value.html" $stdShort }}
             </p>
-            <p class="note">
+            <p class="note" data-symbol-ascii="{{ .Params.hm_full_std }}">
               {{ partial "field_label.html" (dict "text" "Standard full HM symbol" "url" (index $docMap "hm_full_std")) }}
               {{
                 partial "info_dot.html" (dict
@@ -790,7 +790,7 @@
                   {{ $hmLabelHtml := $item.hm_short_html }}
                   {{ $hmLabel := default $item.hall_key (default $item.hm_short $item.hm_short_unicode) }}
                   {{ $tabId := printf "max-tab-%d" $idx }}
-                  <div class="mapping-tab-item" data-mapping-tab-item>
+                  <div class="mapping-tab-item" data-mapping-tab-item data-symbol-ascii="{{ $item.hm_short }}">
                     <button
                       class="mapping-tab-btn{{ if eq $idx 0 }} is-active{{ end }}"
                       type="button"
@@ -936,7 +936,7 @@
                   {{ $hmLabelHtml := $item.hm_short_html }}
                   {{ $hmLabel := default $item.hall_key (default $item.hm_short $item.hm_short_unicode) }}
                   {{ $tabId := printf "min-tab-%d" $idx }}
-                  <div class="mapping-tab-item" data-mapping-tab-item>
+                  <div class="mapping-tab-item" data-mapping-tab-item data-symbol-ascii="{{ $item.hm_short }}">
                     <button
                       class="mapping-tab-btn{{ if eq $idx 0 }} is-active{{ end }}"
                       type="button"
@@ -1403,13 +1403,15 @@
                 >
                   <p class="note">
                     Target setting:
-                    {{ if $item.hall_html }}
-                      <span>{{ $item.hall_html | safeHTML }}</span>
-                    {{ else if $item.hall_latex }}
-                      <span class="math-content">\({{ $item.hall_latex }}\)</span>
-                    {{ else }}
-                      <span>{{ partial "value.html" (default $item.hall_unicode $item.hall_key) }}</span>
-                    {{ end }}
+                    <span data-symbol-ascii="{{ $item.hall }}">
+                      {{ if $item.hall_html }}
+                        <span>{{ $item.hall_html | safeHTML }}</span>
+                      {{ else if $item.hall_latex }}
+                        <span class="math-content">\({{ $item.hall_latex }}\)</span>
+                      {{ else }}
+                        <span>{{ partial "value.html" (default $item.hall_unicode $item.hall_key) }}</span>
+                      {{ end }}
+                    </span>
                     {{ with $item.setting }}<span class="table-aliases-muted"> ({{ . }})</span>{{ end }}
                     <a
                       class="mapping-tab-external-link"
